@@ -62,6 +62,46 @@ bool isSafeLevels(const std::vector<int> &levels)
   return true;
 }
 
+bool checkDampenedLevels(const std::vector<int> &levels)
+{
+  int totalLevels = levels.size();
+  for (int index = 0; index < totalLevels; index++)
+  {
+    auto levelsCopy = levels;
+    levelsCopy.erase(levelsCopy.begin() + index);
+    if (isSafeLevels(levelsCopy))
+      return true;
+  }
+  return false;
+}
+
+bool isSafeDampenedLevels(const std::vector<int> &levels)
+{
+  int totalLevels = levels.size();
+
+  if (levels.size() == 1)
+    return true;
+
+  Direction initialDirection = getDirection(levels[0], levels[1]);
+
+  if (initialDirection == Direction::Stagnant)
+  {
+    return checkDampenedLevels(levels);
+  }
+
+  for (int index = 1; index < totalLevels; index++)
+  {
+    if (getDirection(levels[index], levels[index + 1]) != initialDirection)
+      return checkDampenedLevels(levels);
+
+    int distance = getDistance(levels[index], levels[index + 1]);
+
+    if (distance < 1 || distance > 3)
+      return checkDampenedLevels(levels);
+  }
+  return true;
+}
+
 int main()
 {
   std::string input = AOCHelper::readInput("Day2/input.txt");
@@ -71,6 +111,7 @@ int main()
   std::string fileToken;
 
   unsigned totalSafeReports = 0;
+  unsigned totalSafeDampenedReports = 0;
 
   while (std::getline(fileTokenizer, fileToken))
   {
@@ -87,9 +128,13 @@ int main()
 
     if (isSafeLevels(report))
       totalSafeReports++;
+
+    if (isSafeDampenedLevels(report))
+      totalSafeDampenedReports++;
   }
 
-  std::cout << totalSafeReports << std::endl;
+  std::cout << "Part 1: " << totalSafeReports << std::endl;
+  std::cout << "Part 2: " << totalSafeDampenedReports << std::endl;
 
   return 0;
 }
