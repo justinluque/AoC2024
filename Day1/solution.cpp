@@ -21,6 +21,14 @@ std::string trim(const std::string &str)
   return result;
 }
 
+int countOccurences(const std::vector<int> &vec, int target)
+{
+  int lower = std::lower_bound(vec.begin(), vec.end(), target) - vec.begin();
+  int upper = std::upper_bound(vec.begin(), vec.end(), target) - vec.begin();
+
+  return upper - lower;
+}
+
 int main()
 {
   const std::string input = trim(AOCHelper::readInput("Day1/input.txt"));
@@ -45,12 +53,15 @@ int main()
   int totalNums = leftNums.size();
 
   int totalDistance = 0;
+  int similarityScore = 0;
 
   for (int index = 0; index < totalNums; index++)
   {
     totalDistance += std::abs(rightNums[index] - leftNums[index]);
+    similarityScore += leftNums[index] * countOccurences(rightNums, leftNums[index]);
   }
 
-  std::cout << totalDistance << '\n';
+  std::cout << "Part 1: " << totalDistance << '\n';
+  std::cout << "Part 2: " << similarityScore << '\n';
   return 0;
 }
