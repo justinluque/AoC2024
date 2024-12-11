@@ -75,11 +75,29 @@ int countXmasOccurences(const std::vector<std::vector<char>> &wordSearch,
   return occurences;
 }
 
+bool isMasX(const std::vector<std::vector<char>> &wordSearch, int row, int col)
+{
+  const int maxRow = wordSearch.size() - 1;
+  const int maxCol = wordSearch[0].size() - 1;
+
+  if (row - 1 < 0 || row + 1 > maxRow || col - 1 < 0 || col + 1 > maxCol)
+    return false;
+
+  std::string firstDiagonal = std::string(1, wordSearch[row - 1][col - 1]) + "A" + wordSearch[row + 1][col + 1];
+  std::string secondDiagonal = std::string(1, wordSearch[row - 1][col + 1]) + "A" + wordSearch[row + 1][col - 1];
+
+  bool firstIsMas = firstDiagonal == "SAM" || firstDiagonal == "MAS";
+  bool secondIsMas = secondDiagonal == "SAM" || secondDiagonal == "MAS";
+
+  return firstIsMas && secondIsMas;
+}
+
 int main()
 {
   std::string input = AOCHelper::readInput("Day4/input.txt");
 
   unsigned xmasOccurences = 0;
+  unsigned masxoccurences = 0;
 
   const std::vector<std::vector<char>> parsedInput = splitInput(input);
 
@@ -88,9 +106,13 @@ int main()
     {
       if (parsedInput[row][col] == 'X')
         xmasOccurences += countXmasOccurences(parsedInput, row, col);
+      if (parsedInput[row][col] == 'A')
+        if (isMasX(parsedInput, row, col))
+          masxoccurences++;
     }
 
-  std::cout << xmasOccurences << std::endl;
+  std::cout << "Part 1: " << xmasOccurences << std::endl;
+  std::cout << "Part 2: " << masxoccurences << std::endl;
 
   return 0;
 }
