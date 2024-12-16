@@ -1,37 +1,46 @@
 # Compiler and flags
 CXX := g++
-CXXFLAGS := -IAOCHelper -std=c++20 -Wall -O2
+CXXFLAGS := -IAOCHelper -Wall -Wextra -std=c++20
 
-# Build directory
+# BUILD DIR
 BUILD_DIR := build
 
-# AOCHelper files
+# AOCHelper source and object
 HELPER_SRC := AOCHelper/AOCHelper.cpp
 HELPER_OBJ := $(BUILD_DIR)/AOCHelper.o
 
-# Default target
-all:
-	@echo "Specify a day to build, e.g., make day1"
+# Directories for the days
+DAYS := $(shell seq 1 31 | sed 's/^/Day/')
 
-# Ensure build directory exists
+# Object and executable rules
+OBJS := $(DAYS:%=$(BUILD_DIR)/%.o)
+EXES := $(DAYS:%=%/solution.exe)
+
+# Default target
+.PHONY: all
+all: $(EXES)
+
+$(DAYS): % : %/solution.exe
+
+# Rule to build individual executables
+%/solution.exe: $(BUILD_DIR)/%.o $(HELPER_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+# Rule to build object files for each day's source
+$(BUILD_DIR)/%.o: %/solution.cpp AOCHelper/AOCHelper.h | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Rule to build AOCHelper object
+$(HELPER_OBJ): $(HELPER_SRC) AOCHelper/AOCHelper.h | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Create the build directory if it doesn't exist
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-# Build AOCHelper object file
-$(HELPER_OBJ): $(HELPER_SRC) | $(BUILD_DIR)
-	$(CXX) -c $< -o $@ $(CXXFLAGS)
-
-# Rules for each day's solution object file
-$(BUILD_DIR)/Day%.o: Day%/solution.cpp | $(BUILD_DIR)
-	$(CXX) -c $< -o $@ $(CXXFLAGS)
-
-# Build solution for a specific day
-day%: $(BUILD_DIR)/Day%.o $(HELPER_OBJ)
-	$(CXX) $(CXXFLAGS) $^ -o Day$*/solution.exe
-	@echo "Built Day$* solution. Run it using ./Day$*/solution.exe"
-
-# Clean all build artifacts
+# Rule to clean build artifacts
 clean:
-	rm -rf $(BUILD_DIR) Day*/solution.exe
+	rm -rf $(BUILD_DIR) $(EXES)
 
-.PHONY: clean all
+.PHONY: clean
+
