@@ -15,5 +15,5 @@ Each day is stored in it's own folder to make easier the storage of input files.
 To test a solution you can run the following (replace the number with the given day you'd like to solve)
 
 ```
-make day1
+make Day1
 ```
