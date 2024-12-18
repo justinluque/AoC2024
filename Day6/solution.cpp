@@ -200,19 +200,19 @@ unsigned countLoopCausingNewObstructions(std::vector<std::vector<char>> grid) {
       guardToDirection(grid[startingGuardRow][startingGuardCol]);
 
   std::vector<std::vector<char>> gridCopy = grid;
-  size_t guardPosRow = startingGuardRow;
-  size_t guardPosCol = startingGuardCol;
+  size_t guardRow = startingGuardRow;
+  size_t guardCol = startingGuardCol;
   Direction currentDirection = startingDirection;
 
   std::set<std::pair<size_t, size_t>> locationsToTest;
 
   // Traverse grid looking for locations to test
-  while (!isOutOfBounds(guardPosRow, guardPosCol, totalRows, totalCols,
+  while (!isOutOfBounds(guardRow, guardCol, totalRows, totalCols,
                         currentDirection)) {
     std::pair<int, int> directionVector = toVector(currentDirection);
 
-    size_t newPosRow = guardPosRow + directionVector.first;
-    size_t newPosCol = guardPosCol + directionVector.second;
+    size_t newPosRow = guardRow + directionVector.first;
+    size_t newPosCol = guardCol + directionVector.second;
 
     if (isObstruction(gridCopy[newPosRow][newPosCol])) {
       currentDirection = rotateClockwise(currentDirection);
@@ -224,10 +224,10 @@ unsigned countLoopCausingNewObstructions(std::vector<std::vector<char>> grid) {
           std::make_pair(newPosRow, newPosCol)); // append location to set
 
     gridCopy[newPosRow][newPosCol] = directionToGuard(currentDirection);
-    gridCopy[guardPosRow][guardPosCol] = 'X';
+    gridCopy[guardRow][guardCol] = 'X';
 
-    guardPosRow = newPosRow;
-    guardPosCol = newPosCol;
+    guardRow = newPosRow;
+    guardCol = newPosCol;
   }
 
   for (const std::pair<size_t, size_t> &location : locationsToTest) {
