@@ -2,6 +2,7 @@
 
 #include <array>
 #include <iostream>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -143,14 +144,112 @@ unsigned countUniquePositionsReached(std::vector<std::vector<char>> grid) {
   return uniquePositions;
 }
 
+bool findLoop(std::vector<std::vector<char>> grid, size_t startingRow,
+              size_t startingCol, Direction startingDirection) {
+  size_t maxRow = grid.size();
+  size_t maxCol = grid[0].size();
+
+  std::vector<std::vector<int>> timesVisited(maxRow,
+                                             std::vector<int>(maxCol, 0));
+
+  size_t guardRow = startingRow;
+  size_t guardCol = startingCol;
+  Direction currentDirection = startingDirection;
+
+  while (!isOutOfBounds(guardRow, guardCol, maxRow, maxCol, currentDirection)) {
+    std::pair<int, int> directionVector = toVector(currentDirection);
+
+    size_t newPosRow = guardRow + directionVector.first;
+    size_t newPosCol = guardCol + directionVector.second;
+
+    if (isObstruction(grid[newPosRow][newPosCol])) {
+      currentDirection = rotateClockwise(currentDirection);
+      continue;
+    }
+
+    if (timesVisited[guardRow][guardCol] >= 4)
+      return true;
+
+    grid[newPosRow][newPosCol] = directionToGuard(currentDirection);
+    grid[guardRow][guardCol] = 'X';
+    timesVisited[guardRow][guardCol]++;
+
+    guardRow = newPosRow;
+    guardCol = newPosCol;
+  }
+
+  return false;
+}
+
+unsigned countLoopCausingNewObstructions(std::vector<std::vector<char>> grid) {
+  unsigned loopsFound = 0;
+
+  size_t totalRows = grid.size();
+  size_t totalCols = grid[0].size();
+
+  size_t startingGuardRow, startingGuardCol;
+
+  for (size_t i = 0; i < totalRows; i++)
+    for (size_t j = 0; j < totalCols; j++)
+      if (isGuard(grid[i][j])) {
+        startingGuardRow = i;
+        startingGuardCol = j;
+      }
+
+  Direction startingDirection =
+      guardToDirection(grid[startingGuardRow][startingGuardCol]);
+
+  std::vector<std::vector<char>> gridCopy = grid;
+  size_t guardPosRow = startingGuardRow;
+  size_t guardPosCol = startingGuardCol;
+  Direction currentDirection = startingDirection;
+
+  std::set<std::pair<size_t, size_t>> locationsToTest;
+
+  // Traverse grid looking for locations to test
+  while (!isOutOfBounds(guardPosRow, guardPosCol, totalRows, totalCols,
+                        currentDirection)) {
+    std::pair<int, int> directionVector = toVector(currentDirection);
+
+    size_t newPosRow = guardPosRow + directionVector.first;
+    size_t newPosCol = guardPosCol + directionVector.second;
+
+    if (isObstruction(gridCopy[newPosRow][newPosCol])) {
+      currentDirection = rotateClockwise(currentDirection);
+      continue;
+    }
+
+    if (!locationsToTest.contains(std::make_pair(newPosRow, newPosCol)))
+      locationsToTest.insert(
+          std::make_pair(newPosRow, newPosCol)); // append location to set
+
+    gridCopy[newPosRow][newPosCol] = directionToGuard(currentDirection);
+    gridCopy[guardPosRow][guardPosCol] = 'X';
+
+    guardPosRow = newPosRow;
+    guardPosCol = newPosCol;
+  }
+
+  for (const std::pair<size_t, size_t> &location : locationsToTest) {
+    grid[location.first][location.second] = '#';
+    if (findLoop(grid, startingGuardRow, startingGuardCol, startingDirection))
+      loopsFound++;
+    grid[location.first][location.second] = '.';
+  }
+
+  return loopsFound;
+}
+
 int main() {
   std::string input = AOCHelper::readInput("Day6/input.txt");
 
   std::vector<std::vector<char>> grid = parseInput(input);
 
   unsigned uniquePositions = countUniquePositionsReached(grid);
+  unsigned loopsFound = countLoopCausingNewObstructions(grid);
 
   std::cout << "Part 1: " << uniquePositions << '\n';
+  std::cout << "Part 2: " << loopsFound << '\n';
 
   return 0;
 }
