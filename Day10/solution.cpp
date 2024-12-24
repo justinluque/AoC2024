@@ -56,11 +56,14 @@ unsigned countPaths(const std::vector<std::vector<int>> &map, std::vector<std::v
 		const size_t newCol = col + direction.second;
 		const int newElevation = map[newRow][newCol];
 
-		if (newElevation == 9 && !visited[newRow][newCol])
-		{	occurences++; 
+		if (visited[newRow][newCol])
+			continue;
+
+		if (newElevation == currentElevation + 1)
+		{	
 			visited[newRow][newCol] = true;
-		} else if (newElevation == currentElevation + 1 && !visited[newRow][newCol])
-			occurences += countPaths(map, visited, newRow, newCol);
+			occurences += newElevation == 9 ? 1 : countPaths(map, visited, newRow, newCol);
+		}
 	}
 	return occurences;
 }
