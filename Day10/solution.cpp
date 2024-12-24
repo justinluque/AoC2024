@@ -48,19 +48,20 @@ unsigned countPaths(const std::vector<std::vector<int>> &map, std::vector<std::v
 	visited[row][col] = true;
 
 	for (const auto &direction : directions)
-		if(transformationFits(row, col, direction, map))
-		{
-			const size_t newRow = row + direction.first;
-			const size_t newCol = col + direction.second;
-			const int newElevation = map[newRow][newCol];
+	{
+		if(!transformationFits(row, col, direction, map))
+			continue;
 
-			if (newElevation == 9 && !visited[newRow][newCol])
-			{	occurences++; 
-				visited[newRow][newCol] = true;
-			}
-			else if (newElevation == currentElevation + 1 && !visited[newRow][newCol])
-				occurences += countPaths(map, visited, newRow, newCol);
-		}
+		const size_t newRow = row + direction.first;
+		const size_t newCol = col + direction.second;
+		const int newElevation = map[newRow][newCol];
+
+		if (newElevation == 9 && !visited[newRow][newCol])
+		{	occurences++; 
+			visited[newRow][newCol] = true;
+		} else if (newElevation == currentElevation + 1 && !visited[newRow][newCol])
+			occurences += countPaths(map, visited, newRow, newCol);
+	}
 	return occurences;
 }
 			
