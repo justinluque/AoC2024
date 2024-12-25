@@ -4,22 +4,17 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <map>
+#include <numeric>
 
 typedef unsigned long long bigint;
 
-void printVec(const std::vector<bigint> &vec)
-{
-	for(const bigint &num : vec)
-		std::cout << num << ' ';
-	std::cout << '\n';
-}
-
-unsigned totalDigits(bigint num)
+bigint totalDigits(bigint num)
 {
 	if (num == 0)
 		return 1;
 
-	unsigned digits = 0;
+	bigint digits = 0;
 
 	do
 	{
@@ -39,63 +34,72 @@ std::pair<bigint, bigint> split(bigint num)
 {
 	std::pair<bigint, bigint> result;
 	std::string snum = std::to_string(num);
-	size_t size = snum.size();
+	bigint size = snum.size();
 	result.first = std::stoull(snum.substr(0, size / 2));
 	result.second = std::stoull(snum.substr(size / 2));
 	return result;
 }
 
-std::vector<bigint> parseInput(const std::string &input)
+std::map<bigint, bigint> parseInput(const std::string &input)
 {
-	std::vector<bigint> rocks;
+	std::map<bigint, bigint> rocks;
 
 	std::istringstream numTokenizer(input);
 	std::string numToken;
 
 	while(std::getline(numTokenizer, numToken, ' '))
-		rocks.push_back(std::stoi(numToken));
+		rocks[std::stoull(numToken)]++;
 
 	return rocks;
 }
 
-void blink(std::vector<bigint> &rocks)
+void blink(std::map<bigint, bigint> &rocks)
 {
-	for (size_t i = 0; i < rocks.size(); i++)
+	std::map<bigint, bigint> newRocks;
+
+	for (const auto &[stoneNum, count] : rocks)
 	{
-		bigint stoneNum = rocks[i];
 		if (stoneNum == 0)
-			rocks[i] = 1;
+			newRocks[1] += count;
 		else if (isEvenDigits(stoneNum))
 		{
-			auto splitNums = split(rocks[i]);
-			rocks.insert(rocks.begin() + i, splitNums.first);
-			rocks[++i] = splitNums.second;
-		} else rocks[i] *= 2024;
+			auto splitNums = split(stoneNum);
+			newRocks[splitNums.first] += count;
+			newRocks[splitNums.second] += count;
+		} else
+		{
+			newRocks[stoneNum * 2024] += count;
+		}
 	}
+
+	rocks = std::move(newRocks);
 }
 
-size_t totalStonesAfterXBlinks(std::vector<bigint> stones, size_t blinks)
+bigint totalStonesAfterXBlinks(std::map<bigint, bigint> stones, size_t blinks)
 {
 	for (size_t i = 0; i < blinks; i++)
-	{
-		printVec(stones);
-		std::cout << "Calculating blink " << i + 1;
 		blink(stones);
-	}
 
-	printVec(stones);
-	return stones.size();
+	return std::accumulate(stones.begin(), stones.end(), 0, 
+			[](bigint total, const std::pair<bigint, bigint> &p) {
+			return total + p.second;
+			});
 }
 
 int main()
 {
-	std::string input = AOCHelper::readInput("Day11/input.txt");
+	std::string input = AOCHelper::readInput("Day11/sample_input.txt");
 
-	std::vector<bigint> stones = parseInput(input);
+	std::map<bigint, bigint> stones = parseInput(input);
 
-	size_t partOne = totalStonesAfterXBlinks(stones, 25);
+	bigint partOne = totalStonesAfterXBlinks(stones, 25);
+	bigint partTwo = totalStonesAfterXBlinks(stones, 75);
 
 	std::cout << "Part 1: " << partOne << '\n';
+	std::cout << "Part 2: " << partTwo << '\n';
+
+	for(int i = 1; i < 76; i++)
+		std::cout << i << " - " << totalStonesAfterXBlinks(stones, i) << '\n';
 
 	return 0;
 }
