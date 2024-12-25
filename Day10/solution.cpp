@@ -41,7 +41,7 @@ std::vector<std::vector<int>> parseInput(const std::string &input)
 	return result;
 }
 
-unsigned countPaths(const std::vector<std::vector<int>> &map, std::vector<std::vector<bool>> &visited, size_t row, size_t col)
+unsigned countDistinctPaths(const std::vector<std::vector<int>> &map, std::vector<std::vector<bool>> &visited, size_t row, size_t col)
 {
 	unsigned occurences = 0;
 	const int currentElevation = map[row][col];
@@ -62,13 +62,31 @@ unsigned countPaths(const std::vector<std::vector<int>> &map, std::vector<std::v
 		if (newElevation == currentElevation + 1)
 		{	
 			visited[newRow][newCol] = true;
-			occurences += newElevation == 9 ? 1 : countPaths(map, visited, newRow, newCol);
+			occurences += newElevation == 9 ? 1 : countDistinctPaths(map, visited, newRow, newCol);
 		}
 	}
 	return occurences;
 }
 			
+unsigned countPaths(const std::vector<std::vector<int>> &map, size_t row, size_t col)
+{
+	unsigned occurences = 0;
+	const int currentElevation = map[row][col];
 
+	for (const auto &direction : directions)
+	{
+		if(!transformationFits(row, col, direction, map))
+			continue;
+
+		const size_t newRow = row + direction.first;
+		const size_t newCol = col + direction.second;
+		const int newElevation = map[newRow][newCol];
+
+		if (newElevation == currentElevation + 1)
+			occurences += newElevation == 9 ? 1 : countPaths(map, newRow, newCol);
+	}
+	return occurences;
+}
 
 unsigned sumTrailheadScores(const std::vector<std::vector<int>> &map)
 {
@@ -78,8 +96,18 @@ unsigned sumTrailheadScores(const std::vector<std::vector<int>> &map)
 			if (map[row][col] == 0)
 			{
 				std::vector<std::vector<bool>> visited(map.size(), std::vector<bool>(map[0].size(), false));
-				sum += countPaths(map, visited, row, col);
+				sum += countDistinctPaths(map, visited, row, col);
 			}
+	return sum;
+}
+
+unsigned sumTrailheadRatings(const std::vector<std::vector<int>> &map)
+{
+	unsigned sum = 0;
+	for (size_t row = 0; row < map.size(); row++)
+		for (size_t col = 0; col < map[0].size(); col++)
+			if (map[row][col] == 0)
+				sum += countPaths(map, row, col);
 	return sum;
 }
 
@@ -90,6 +118,8 @@ int main()
 	std::vector<std::vector<int>> map = parseInput(input);
 
 	const unsigned sumScores = sumTrailheadScores(map);
+	const unsigned sumRatings = sumTrailheadRatings(map);
 
 	std::cout << "Part 1: " << sumScores << '\n';
+	std::cout << "Part 2: " << sumRatings << '\n';
 }
