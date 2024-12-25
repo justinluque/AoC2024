@@ -70,14 +70,14 @@ bigint totalStonesAfterXBlinks(std::map<bigint, bigint> stones, size_t blinks) {
   for (size_t i = 0; i < blinks; i++)
     blink(stones);
 
-  return std::accumulate(stones.begin(), stones.end(), 0,
+  return std::accumulate(stones.begin(), stones.end(), 0ull,
                          [](bigint total, const std::pair<bigint, bigint> &p) {
                            return total + p.second;
                          });
 }
 
 int main() {
-  std::string input = AOCHelper::readInput("Day11/sample_input.txt");
+  std::string input = AOCHelper::readInput("Day11/input.txt");
 
   std::map<bigint, bigint> stones = parseInput(input);
 
@@ -86,9 +86,6 @@ int main() {
 
   std::cout << "Part 1: " << partOne << '\n';
   std::cout << "Part 2: " << partTwo << '\n';
-
-  for (int i = 1; i < 76; i++)
-    std::cout << i << " - " << totalStonesAfterXBlinks(stones, i) << '\n';
 
   return 0;
 }
