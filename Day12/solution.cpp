@@ -47,7 +47,7 @@ std::vector<std::vector<char>> parseInput(const std::string &input) {
   return grid;
 }
 
-/// Returns <area, perimeter>
+// Returns <area, perimeter>
 std::pair<int, int> fillRegion(const std::vector<std::vector<char>> &farmGrid,
                                std::vector<std::vector<bool>> &visited,
                                size_t row, size_t col) {
@@ -109,14 +109,90 @@ int sumAllRegionPrices(const std::vector<std::vector<char>> &farmGrid) {
   return sum;
 }
 
+// Returns <area, sides>
+std::pair<int, int>
+fillRegionDiscounted(const std::vector<std::vector<char>> &farmGrid,
+                     std::vector<std::vector<bool>> &visited, size_t row,
+                     size_t col) {
+  int sides = 0;
+  int area = 0;
+  char target = farmGrid[row][col];
+
+  std::queue<std::pair<int, int>> toVisit;
+  std::vector<std::pair<int, int>> corners;
+
+  toVisit.emplace(row, col);
+  visited[row][col] = true;
+
+  while (!toVisit.empty()) {
+    auto currentCell = toVisit.front();
+    toVisit.pop();
+    area++;
+    int borders = 0;
+    std::vector<std::pair<int, int>> borderDirections;
+
+    for (const auto &direction : directions) {
+      if (!transformationFits(currentCell.first, currentCell.second, direction,
+                              farmGrid)) {
+        borders++;
+        borderDirections.push_back(direction);
+        continue;
+      }
+
+      auto consideredCell =
+          std::make_pair(currentCell.first + direction.first,
+                         currentCell.second + direction.second);
+      char cellsValue = farmGrid[consideredCell.first][consideredCell.second];
+
+      if (target != cellsValue) {
+        borders++;
+      } else if (!visited[consideredCell.first][consideredCell.second]) {
+        toVisit.push(consideredCell);
+        visited[consideredCell.first][consideredCell.second] =
+            true; // avoid multiple visits of the same cell
+      }
+    }
+
+    if (borders > 1)
+      corners.push_back(currentCell);
+  }
+
+  for (const std::pair<int, int> &corner : corners) {
+  }
+
+  return std::make_pair(area, sides);
+}
+
+int sumAllDiscountPrices(const std::vector<std::vector<char>> &farmGrid) {
+  int sum = 0;
+  std::vector<std::vector<bool>> visited(
+      farmGrid.size(), std::vector<bool>(farmGrid[0].size(), false));
+
+  for (size_t row = 0; row < farmGrid.size(); row++) {
+    for (size_t col = 0; col < farmGrid[0].size(); col++) {
+      if (!visited[row][col]) {
+        auto plotData = fillRegionDiscounted(farmGrid, visited, row,
+                                             col); // <area, perimter>
+        sum += plotData.first * plotData.second;
+        std::cout << farmGrid[row][col] << " plot - " << plotData.first
+                  << " area and " << plotData.second << " sides.\n";
+      }
+    }
+  }
+
+  return sum;
+}
+
 int main() {
-  std::string input = AOCHelper::readInput("Day12/input.txt");
+  std::string input = AOCHelper::readInput("Day12/sample_input.txt");
 
   std::vector<std::vector<char>> farmGrid = parseInput(input);
 
   int sumPrices = sumAllRegionPrices(farmGrid);
+  int sumBulkDiscountPrices = sumAllDiscountPrices(farmGrid);
 
   std::cout << "Part 1: " << sumPrices << '\n';
+  std::cout << "Part 2: " << sumBulkDiscountPrices << '\n';
 
   return 0;
 }
